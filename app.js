@@ -137,13 +137,15 @@ function placeHat(landmarks) {
   const faceWidth = Math.abs(rightEye.x - leftEye.x) * innerWidth;
   const hatWidth = Math.max(110, Math.min(190, faceWidth * 0.9));
   const hatHeight = Math.max(140, Math.min(235, faceWidth * 1.18));
-  const x = clamp((1 - head.x) * innerWidth + faceWidth * 0.12, hatWidth / 2, innerWidth - hatWidth / 2);
-  const y = clamp(head.y * innerHeight - hatHeight * 0.95, 8, innerHeight - hatHeight - 8);
+  const x = clamp((1 - head.x) * innerWidth, hatWidth / 2, innerWidth - hatWidth / 2);
+  const y = clamp(head.y * innerHeight + 16, hatHeight, innerHeight - 8);
 
   hat.classList.add("visible");
   hat.style.width = `${hatWidth}px`;
   hat.style.height = `${hatHeight}px`;
-  hat.style.transform = `translate(${x - hatWidth / 2}px, ${y}px) rotate(16deg)`;
+  hat.style.left = `${x}px`;
+  hat.style.top = `${y}px`;
+  hat.style.transform = "translate(-50%, -100%) rotate(12deg)";
 }
 
 function isBlowing(categories, landmarks) {
@@ -265,6 +267,7 @@ function updateDebug(result, blowing = false) {
     `funnel: ${round(blend.mouthFunnel)}`,
     `openRatio: ${round(mouthOpenRatio(landmarks))}`,
     `widthRatio: ${round(mouthWidthRatio(landmarks))}`,
+    `head: ${Math.round((1 - landmarks[10].x) * innerWidth)},${Math.round(landmarks[10].y * innerHeight)}`,
     `hat: ${Math.round(hat.getBoundingClientRect().left)},${Math.round(hat.getBoundingClientRect().top)}`,
   ].join("\n");
 }
