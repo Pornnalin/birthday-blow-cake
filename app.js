@@ -31,6 +31,7 @@ let cakeStateAt = 0;
 let cakeReady = false;
 
 const BLOW_HOLD_MS = 2500;
+const CAKE_ARM_MS = 1200;
 const MOUTH_TOP = 0;
 const MOUTH_BOTTOM = 17;
 const MOUTH_LEFT = 61;
@@ -141,6 +142,8 @@ function updateFace(result, now) {
 }
 
 function updateCakeChase(landmarks, now) {
+  if (now - cakeStateAt < CAKE_ARM_MS) return;
+
   const mouthCenter = centerPoint(landmarks[MOUTH_LEFT], landmarks[MOUTH_RIGHT]);
   const mouth = toScreenPoint(mouthCenter);
   const cakeBox = cake.getBoundingClientRect();
@@ -149,8 +152,8 @@ function updateCakeChase(landmarks, now) {
     y: cakeBox.top + cakeBox.height / 2,
   };
   const nearCake = Math.hypot(mouth.x - cakeCenter.x, mouth.y - cakeCenter.y) < Math.max(180, innerWidth * 0.18);
-  const reachingLeftCake = mouth.x < innerWidth * 0.42 && mouth.y > innerHeight * 0.52;
-  const reachingRightCake = mouth.x > innerWidth * 0.58 && mouth.y > innerHeight * 0.48;
+  const reachingLeftCake = mouth.x < innerWidth * 0.3 && mouth.y > innerHeight * 0.68;
+  const reachingRightCake = mouth.x > innerWidth * 0.7 && mouth.y > innerHeight * 0.58;
 
   if (cakeState === "left" && (nearCake || reachingLeftCake)) {
     setCakeState("right");
