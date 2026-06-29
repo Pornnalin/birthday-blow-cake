@@ -15,7 +15,7 @@ const debugPanel = document.querySelector("#debugPanel");
 const debugContext = debugCanvas.getContext("2d");
 const params = new URLSearchParams(location.search);
 const debugMode = !params.has("nodebug");
-const tuningMode = params.has("debug");
+const tuningMode = params.has("tune");
 
 if (debugMode) {
   stage.classList.add("debug");
@@ -119,7 +119,7 @@ function updateFace(result, now) {
   updateDebug(result, blowing);
   if (!blowing || tuningMode) {
     blowStartedAt = 0;
-    setStatus(tuningMode ? "โหมดจูน: debug เปิดอยู่ ยังไม่จบอัตโนมัติ" : "เป่าเทียนด้วยปาก");
+    setStatus(tuningMode ? "โหมดจูน: ยังไม่จบอัตโนมัติ" : "เป่าเทียนด้วยปาก");
     return;
   }
 
