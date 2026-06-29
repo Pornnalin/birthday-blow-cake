@@ -150,14 +150,16 @@ function placeHat(landmarks) {
   const leftEye = landmarks[33];
   const rightEye = landmarks[263];
   const faceWidth = Math.abs(rightEye.x - leftEye.x) * innerWidth;
-  const mirroredX = (1 - brow.x) * innerWidth;
-  const y = brow.y * innerHeight - Math.max(90, faceWidth * 0.72);
+  const hatWidth = Math.max(86, Math.min(150, faceWidth * 0.72));
+  const hatHeight = Math.max(100, Math.min(168, faceWidth * 0.82));
+  const x = brow.x * innerWidth;
+  const y = brow.y * innerHeight - hatHeight * 0.62;
   const angle = Math.atan2(rightEye.y - leftEye.y, leftEye.x - rightEye.x) * (180 / Math.PI);
 
   hat.classList.add("visible");
-  hat.style.width = `${Math.max(86, Math.min(150, faceWidth * 0.72))}px`;
-  hat.style.height = `${Math.max(100, Math.min(168, faceWidth * 0.82))}px`;
-  hat.style.transform = `translate(${mirroredX - hat.offsetWidth / 2}px, ${y}px) rotate(${angle}deg)`;
+  hat.style.width = `${hatWidth}px`;
+  hat.style.height = `${hatHeight}px`;
+  hat.style.transform = `translate(${x - hatWidth / 2}px, ${y}px) rotate(${angle}deg)`;
 }
 
 function isBlowing(categories, landmarks) {

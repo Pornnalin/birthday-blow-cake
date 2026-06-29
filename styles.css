@@ -70,6 +70,21 @@ button:disabled {
   pointer-events: none;
 }
 
+.rotate-lock {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  place-items: center;
+  padding: 2rem;
+  color: #fff7ed;
+  background: #111827;
+  font-size: clamp(2rem, 7vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+}
+
 .stage.started .dim {
   background: rgb(3 7 18 / 0.3);
 }
@@ -272,6 +287,12 @@ button:disabled {
 
 .stage.done .message {
   animation: popMessage 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (orientation: landscape) and (pointer: coarse) {
+  .rotate-lock {
+    display: grid;
+  }
 }
 
 @keyframes cakeChaos {
