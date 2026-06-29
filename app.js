@@ -9,6 +9,7 @@ const startButton = document.querySelector("#startButton");
 const statusText = document.querySelector("#status");
 const hat = document.querySelector("#hat");
 const birthdaySong = document.querySelector("#birthdaySong");
+const confettiLayer = document.querySelector("#confettiLayer");
 const debugCanvas = document.querySelector("#debugCanvas");
 const debugPanel = document.querySelector("#debugPanel");
 const debugContext = debugCanvas.getContext("2d");
@@ -173,7 +174,29 @@ function finish() {
   done = true;
   stage.classList.add("done");
   setStatus("สุขสันต์วันเกิด!");
+  throwConfetti();
   playBirthdaySong(false);
+}
+
+function throwConfetti() {
+  confettiLayer.textContent = "";
+  const colors = ["#f43f5e", "#facc15", "#22c55e", "#38bdf8", "#a855f7", "#fb923c", "#fff7ed"];
+
+  for (let index = 0; index < 120; index += 1) {
+    const piece = document.createElement("i");
+    piece.style.setProperty("--x", `${Math.random() * 100}vw`);
+    piece.style.setProperty("--dx", `${(Math.random() - 0.5) * 42}vw`);
+    piece.style.setProperty("--spin", `${Math.random() * 900 - 450}deg`);
+    piece.style.setProperty("--delay", `${Math.random() * 0.7}s`);
+    piece.style.setProperty("--fall", `${2.4 + Math.random() * 2.2}s`);
+    piece.style.background = colors[index % colors.length];
+    piece.className = Math.random() > 0.55 ? "streamer" : "";
+    confettiLayer.append(piece);
+  }
+
+  setTimeout(() => {
+    confettiLayer.textContent = "";
+  }, 5200);
 }
 
 async function unlockSong() {

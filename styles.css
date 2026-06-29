@@ -58,6 +58,11 @@ button:disabled {
   transition: opacity 700ms ease;
 }
 
+.stage.done .camera {
+  filter: brightness(1.22) saturate(1.08);
+  opacity: 0.9;
+}
+
 .debug-canvas {
   position: absolute;
   inset: 0;
@@ -96,6 +101,38 @@ button:disabled {
 
 .stage.started .dim {
   background: rgb(3 7 18 / 0.3);
+}
+
+.stage.done .dim {
+  background:
+    radial-gradient(circle at 50% 34%, rgb(255 247 237 / 0.24), transparent 42%),
+    rgb(255 244 214 / 0.1);
+}
+
+.confetti-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti-layer i {
+  position: absolute;
+  top: -10vh;
+  left: var(--x);
+  width: 10px;
+  height: 18px;
+  border-radius: 2px;
+  opacity: 0;
+  transform: translate3d(0, 0, 0) rotate(0deg);
+  animation: confettiFall var(--fall) cubic-bezier(0.17, 0.67, 0.28, 1) var(--delay) forwards;
+}
+
+.confetti-layer i.streamer {
+  width: 7px;
+  height: 34px;
+  border-radius: 999px;
 }
 
 .intro {
@@ -375,6 +412,18 @@ button:disabled {
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes confettiFall {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, -8vh, 0) rotate(0deg);
+  }
+
+  100% {
+    opacity: 0.92;
+    transform: translate3d(var(--dx), 116vh, 0) rotate(var(--spin));
   }
 }
 
