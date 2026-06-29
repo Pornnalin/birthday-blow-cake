@@ -201,7 +201,7 @@ button:disabled {
 }
 
 .cake {
-  --cake-x: 78vw;
+  --cake-x: 24vw;
   --cake-y: 84vh;
   position: absolute;
   z-index: 4;
@@ -209,12 +209,36 @@ button:disabled {
   top: var(--cake-y);
   width: clamp(150px, 25vw, 260px);
   aspect-ratio: 1.25;
-  transform: translate(-220vw, -50%) rotate(-24deg) scale(0.82);
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
   filter: drop-shadow(0 28px 34px rgb(0 0 0 / 0.38));
+  transition:
+    left 780ms cubic-bezier(0.16, 1, 0.3, 1),
+    top 780ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 780ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.stage.party .cake {
-  animation: cakeChaos 2.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+.cake[data-state="right"] {
+  --cake-x: 78vw;
+  --cake-y: 84vh;
+  transform: translate(-50%, -50%) rotate(8deg) scale(0.98);
+}
+
+.cake[data-state="escape"] {
+  --cake-x: 78vw;
+  --cake-y: -20vh;
+  transform: translate(-50%, -50%) rotate(-12deg) scale(0.9);
+}
+
+.cake[data-state="below"] {
+  --cake-x: 50vw;
+  --cake-y: 118vh;
+  transition-duration: 0ms;
+}
+
+.cake[data-state="final"] {
+  --cake-x: 50vw;
+  --cake-y: 84vh;
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
 }
 
 .stage.done .cake {
@@ -366,28 +390,6 @@ button:disabled {
   }
 }
 
-@keyframes cakeChaos {
-  0% {
-    transform: translate(-220vw, -65%) rotate(-28deg) scale(0.78);
-  }
-
-  25% {
-    transform: translate(96vw, -48%) rotate(22deg) scale(0.92);
-  }
-
-  48% {
-    transform: translate(-148vw, -38%) rotate(-20deg) scale(0.86);
-  }
-
-  72% {
-    transform: translate(36vw, -55%) rotate(10deg) scale(1.04);
-  }
-
-  100% {
-    transform: translate(-50%, -50%) rotate(0deg) scale(1);
-  }
-}
-
 @keyframes flicker {
   from {
     filter: hue-rotate(-10deg);
@@ -435,7 +437,7 @@ button:disabled {
   }
 
   .cake {
-    --cake-x: 78vw;
+    --cake-x: 24vw;
     --cake-y: 84vh;
   }
 

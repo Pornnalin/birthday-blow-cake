@@ -8,6 +8,7 @@ const video = document.querySelector("#camera");
 const startButton = document.querySelector("#startButton");
 const statusText = document.querySelector("#status");
 const hat = document.querySelector("#hat");
+const cake = document.querySelector("#cake");
 const birthdaySong = document.querySelector("#birthdaySong");
 const confettiLayer = document.querySelector("#confettiLayer");
 const debugCanvas = document.querySelector("#debugCanvas");
@@ -22,12 +23,13 @@ if (debugMode) {
 }
 
 let landmarker;
-let startedAt = 0;
 let blowStartedAt = 0;
 let done = false;
 let lastVideoTime = -1;
+let cakeState = "left";
+let cakeStateAt = 0;
+let cakeReady = false;
 
-const BLOW_READY_DELAY = 5200;
 const BLOW_HOLD_MS = 2500;
 const MOUTH_TOP = 0;
 const MOUTH_BOTTOM = 17;
@@ -51,10 +53,10 @@ async function start() {
 
     landmarker = await createLandmarker();
     stage.classList.add("started", "party");
-    startedAt = performance.now();
-    setStatus("เค้กกำลังมา...");
+    setCakeState("left");
+    setStatus("เค้กโผล่มาทางซ้าย ลองหันไปหาเค้ก");
     setTimeout(() => {
-      setStatus("จัดปากเหมือนกำลังเป่าเทียน");
+      setStatus("ตามเค้กให้ทันก่อน แล้วค่อยเป่า");
       playBirthdaySong(true);
     }, 1600);
     requestAnimationFrame(track);
@@ -116,9 +118,10 @@ function updateFace(result, now) {
     return;
   }
 
-  if (now - startedAt < BLOW_READY_DELAY) {
+  updateCakeChase(landmarks, now);
+
+  if (!cakeReady) {
     updateDebug(result, false);
-    setStatus("รอเค้กเข้าที่ก่อน...");
     return;
   }
 
@@ -135,6 +138,48 @@ function updateFace(result, now) {
   if (now - blowStartedAt > BLOW_HOLD_MS) {
     finish();
   }
+}
+
+function updateCakeChase(landmarks, now) {
+  const mouthCenter = centerPoint(landmarks[MOUTH_LEFT], landmarks[MOUTH_RIGHT]);
+  const mouth = toScreenPoint(mouthCenter);
+  const cakeBox = cake.getBoundingClientRect();
+  const cakeCenter = {
+    x: cakeBox.left + cakeBox.width / 2,
+    y: cakeBox.top + cakeBox.height / 2,
+  };
+  const nearCake = Math.hypot(mouth.x - cakeCenter.x, mouth.y - cakeCenter.y) < Math.max(180, innerWidth * 0.18);
+  const reachingLeftCake = mouth.x < innerWidth * 0.42 && mouth.y > innerHeight * 0.52;
+  const reachingRightCake = mouth.x > innerWidth * 0.58 && mouth.y > innerHeight * 0.48;
+
+  if (cakeState === "left" && (nearCake || reachingLeftCake)) {
+    setCakeState("right");
+    setStatus("เค้กหนีไปทางขวา!");
+    return;
+  }
+
+  if (cakeState === "right" && (nearCake || reachingRightCake)) {
+    setCakeState("escape");
+    setStatus("เค้กหนีขึ้นไปแล้ว...");
+    return;
+  }
+
+  if (cakeState === "escape" && now - cakeStateAt > 650) {
+    setCakeState("below");
+    return;
+  }
+
+  if (cakeState === "below" && now - cakeStateAt > 80) {
+    setCakeState("final");
+    setStatus("ตอนนี้เป่าเทียนได้แล้ว");
+  }
+}
+
+function setCakeState(nextState) {
+  cakeState = nextState;
+  cakeStateAt = performance.now();
+  cakeReady = nextState === "final";
+  cake.dataset.state = nextState;
 }
 
 function placeHat(landmarks) {
@@ -172,6 +217,13 @@ function mouthOpenRatio(landmarks) {
 
 function mouthWidthRatio(landmarks) {
   return distance(landmarks[MOUTH_LEFT], landmarks[MOUTH_RIGHT]) / distance(landmarks[33], landmarks[263]);
+}
+
+function centerPoint(a, b) {
+  return {
+    x: (a.x + b.x) / 2,
+    y: (a.y + b.y) / 2,
+  };
 }
 
 function distance(a, b) {
@@ -286,7 +338,8 @@ function updateDebug(result, blowing = false) {
   debugPanel.textContent = [
     `blowing: ${blowing}`,
     `tuning: ${tuningMode}`,
-    `ready: ${Math.max(0, ((performance.now() - startedAt) / 1000).toFixed(1))}s / ${(BLOW_READY_DELAY / 1000).toFixed(1)}s`,
+    `cake: ${cakeState}`,
+    `ready: ${cakeReady}`,
     `hold: ${blowStartedAt ? ((performance.now() - blowStartedAt) / 1000).toFixed(1) : "0.0"}s / ${(BLOW_HOLD_MS / 1000).toFixed(1)}s`,
     `jawOpen: ${round(blend.jawOpen)}`,
     `pucker: ${round(blend.mouthPucker)}`,
