@@ -29,6 +29,10 @@ let lastVideoTime = -1;
 
 const BLOW_READY_DELAY = 5200;
 const BLOW_HOLD_MS = 2500;
+const MOUTH_TOP = 0;
+const MOUTH_BOTTOM = 17;
+const MOUTH_LEFT = 61;
+const MOUTH_RIGHT = 291;
 
 startButton.addEventListener("click", start);
 
@@ -157,11 +161,11 @@ function isBlowing(categories, landmarks) {
 }
 
 function mouthOpenRatio(landmarks) {
-  return distance(landmarks[13], landmarks[14]) / distance(landmarks[33], landmarks[263]);
+  return distance(landmarks[MOUTH_TOP], landmarks[MOUTH_BOTTOM]) / distance(landmarks[33], landmarks[263]);
 }
 
 function mouthWidthRatio(landmarks) {
-  return distance(landmarks[61], landmarks[291]) / distance(landmarks[33], landmarks[263]);
+  return distance(landmarks[MOUTH_LEFT], landmarks[MOUTH_RIGHT]) / distance(landmarks[33], landmarks[263]);
 }
 
 function distance(a, b) {
@@ -244,10 +248,10 @@ function updateDebug(result, blowing = false) {
     ["head", 10, "#facc15"],
     ["leftEye", 33, "#38bdf8"],
     ["rightEye", 263, "#38bdf8"],
-    ["mouthTop", 13, "#fb7185"],
-    ["mouthBottom", 14, "#fb7185"],
-    ["mouthLeft", 61, "#a78bfa"],
-    ["mouthRight", 291, "#a78bfa"],
+    ["mouthTop", MOUTH_TOP, "#fb7185"],
+    ["mouthBottom", MOUTH_BOTTOM, "#fb7185"],
+    ["mouthLeft", MOUTH_LEFT, "#a78bfa"],
+    ["mouthRight", MOUTH_RIGHT, "#a78bfa"],
   ];
 
   for (const [label, index, color] of points) {
@@ -298,10 +302,10 @@ function runSelfCheck() {
   const points = Array.from({ length: 300 }, () => ({ x: 0, y: 0 }));
   points[33] = { x: 0.2, y: 0.4 };
   points[263] = { x: 0.8, y: 0.4 };
-  points[13] = { x: 0.5, y: 0.55 };
-  points[14] = { x: 0.5, y: 0.65 };
-  points[61] = { x: 0.41, y: 0.58 };
-  points[291] = { x: 0.59, y: 0.58 };
+  points[MOUTH_TOP] = { x: 0.5, y: 0.55 };
+  points[MOUTH_BOTTOM] = { x: 0.5, y: 0.65 };
+  points[MOUTH_LEFT] = { x: 0.41, y: 0.58 };
+  points[MOUTH_RIGHT] = { x: 0.59, y: 0.58 };
 
   console.assert(isBlowing([{ categoryName: "jawOpen", score: 0.6 }, { categoryName: "mouthPucker", score: 0.9 }], points), "detects a blow face");
   points[291] = { x: 0.72, y: 0.58 };
