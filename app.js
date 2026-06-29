@@ -13,7 +13,8 @@ const debugCanvas = document.querySelector("#debugCanvas");
 const debugPanel = document.querySelector("#debugPanel");
 const debugContext = debugCanvas.getContext("2d");
 const params = new URLSearchParams(location.search);
-const debugMode = params.has("debug");
+const debugMode = !params.has("nodebug");
+const tuningMode = params.has("debug");
 
 if (debugMode) {
   stage.classList.add("debug");
@@ -26,7 +27,7 @@ let done = false;
 let lastVideoTime = -1;
 
 const BLOW_READY_DELAY = 5200;
-const BLOW_HOLD_MS = 1500;
+const BLOW_HOLD_MS = 2500;
 
 startButton.addEventListener("click", start);
 
@@ -115,9 +116,9 @@ function updateFace(result, now) {
 
   const blowing = isBlowing(result.faceBlendshapes?.[0]?.categories || [], landmarks);
   updateDebug(result, blowing);
-  if (!blowing) {
+  if (!blowing || tuningMode) {
     blowStartedAt = 0;
-    setStatus("เป่าเทียนด้วยปาก");
+    setStatus(tuningMode ? "โหมดจูน: debug เปิดอยู่ ยังไม่จบอัตโนมัติ" : "เป่าเทียนด้วยปาก");
     return;
   }
 
@@ -132,21 +133,23 @@ function placeHat(landmarks) {
   const leftEye = landmarks[33];
   const rightEye = landmarks[263];
   const faceWidth = Math.abs(rightEye.x - leftEye.x) * innerWidth;
-  const hatWidth = Math.max(86, Math.min(150, faceWidth * 0.72));
-  const hatHeight = Math.max(100, Math.min(168, faceWidth * 0.82));
-  const x = (1 - (leftEye.x + rightEye.x) / 2) * innerWidth;
-  const y = ((leftEye.y + rightEye.y) / 2) * innerHeight - hatHeight * 1.2;
+  const eyeCenterX = (1 - (leftEye.x + rightEye.x) / 2) * innerWidth;
+  const eyeCenterY = ((leftEye.y + rightEye.y) / 2) * innerHeight;
+  const hatWidth = Math.max(118, Math.min(220, faceWidth * 1.05));
+  const hatHeight = Math.max(150, Math.min(270, faceWidth * 1.32));
+  const x = eyeCenterX + faceWidth * 0.62;
+  const y = eyeCenterY - hatHeight * 1.28;
 
   hat.classList.add("visible");
   hat.style.width = `${hatWidth}px`;
   hat.style.height = `${hatHeight}px`;
-  hat.style.transform = `translate(${x - hatWidth / 2}px, ${y}px)`;
+  hat.style.transform = `translate(${x - hatWidth / 2}px, ${y}px) rotate(28deg)`;
 }
 
 function isBlowing(categories, landmarks) {
   const blend = Object.fromEntries(categories.map((item) => [item.categoryName, item.score]));
-  const mouthOpen = (blend.jawOpen || 0) > 0.32 || mouthOpenRatio(landmarks) > 0.11;
-  const pursed = (blend.mouthPucker || 0) > 0.65 || (blend.mouthFunnel || 0) > 0.65;
+  const mouthOpen = (blend.jawOpen || 0) > 0.45 && mouthOpenRatio(landmarks) > 0.13;
+  const pursed = (blend.mouthPucker || 0) > 0.8 || (blend.mouthFunnel || 0) > 0.8;
 
   return mouthOpen && pursed;
 }
@@ -228,6 +231,9 @@ function updateDebug(result, blowing = false) {
 
   debugPanel.textContent = [
     `blowing: ${blowing}`,
+    `tuning: ${tuningMode}`,
+    `ready: ${Math.max(0, ((performance.now() - startedAt) / 1000).toFixed(1))}s / ${(BLOW_READY_DELAY / 1000).toFixed(1)}s`,
+    `hold: ${blowStartedAt ? ((performance.now() - blowStartedAt) / 1000).toFixed(1) : "0.0"}s / ${(BLOW_HOLD_MS / 1000).toFixed(1)}s`,
     `jawOpen: ${round(blend.jawOpen)}`,
     `pucker: ${round(blend.mouthPucker)}`,
     `funnel: ${round(blend.mouthFunnel)}`,
@@ -264,11 +270,11 @@ function runSelfCheck() {
   points[33] = { x: 0.2, y: 0.4 };
   points[263] = { x: 0.8, y: 0.4 };
   points[13] = { x: 0.5, y: 0.55 };
-  points[14] = { x: 0.5, y: 0.63 };
+  points[14] = { x: 0.5, y: 0.65 };
   points[61] = { x: 0.41, y: 0.58 };
   points[291] = { x: 0.59, y: 0.58 };
 
-  console.assert(isBlowing([{ categoryName: "mouthPucker", score: 0.8 }], points), "detects a blow face");
+  console.assert(isBlowing([{ categoryName: "jawOpen", score: 0.6 }, { categoryName: "mouthPucker", score: 0.9 }], points), "detects a blow face");
   points[291] = { x: 0.72, y: 0.58 };
   console.assert(!isBlowing([], points), "ignores a normal open mouth");
 }

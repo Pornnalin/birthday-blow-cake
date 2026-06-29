@@ -143,7 +143,7 @@ button:disabled {
 
 .debug-panel {
   position: absolute;
-  top: max(0.75rem, env(safe-area-inset-top));
+  top: max(4.5rem, env(safe-area-inset-top));
   left: max(0.75rem, env(safe-area-inset-left));
   z-index: 30;
   display: none;
@@ -155,7 +155,7 @@ button:disabled {
   border-radius: 8px;
   color: #fef3c7;
   background: rgb(17 24 39 / 0.78);
-  font: 700 12px/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font: 700 11px/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   white-space: pre-wrap;
 }
 
@@ -164,12 +164,13 @@ button:disabled {
 }
 
 .cake {
-  --cake-y: 76vh;
+  --cake-x: 78vw;
+  --cake-y: 84vh;
   position: absolute;
   z-index: 4;
-  left: 50%;
+  left: var(--cake-x);
   top: var(--cake-y);
-  width: clamp(190px, 34vw, 340px);
+  width: clamp(150px, 25vw, 260px);
   aspect-ratio: 1.25;
   transform: translate(-220vw, -50%) rotate(-24deg) scale(0.82);
   filter: drop-shadow(0 28px 34px rgb(0 0 0 / 0.38));
@@ -258,7 +259,7 @@ button:disabled {
 
 .hat {
   position: absolute;
-  z-index: 6;
+  z-index: 9;
   width: 126px;
   height: 140px;
   opacity: 0;
@@ -383,7 +384,8 @@ button:disabled {
   }
 
   .cake {
-    --cake-y: 78vh;
+    --cake-x: 78vw;
+    --cake-y: 84vh;
   }
 
   .hat {
