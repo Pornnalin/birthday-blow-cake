@@ -130,20 +130,19 @@ function updateFace(result, now) {
 }
 
 function placeHat(landmarks) {
+  const head = landmarks[10];
   const leftEye = landmarks[33];
   const rightEye = landmarks[263];
   const faceWidth = Math.abs(rightEye.x - leftEye.x) * innerWidth;
-  const eyeCenterX = (1 - (leftEye.x + rightEye.x) / 2) * innerWidth;
-  const eyeCenterY = ((leftEye.y + rightEye.y) / 2) * innerHeight;
-  const hatWidth = Math.max(118, Math.min(220, faceWidth * 1.05));
-  const hatHeight = Math.max(150, Math.min(270, faceWidth * 1.32));
-  const x = eyeCenterX + faceWidth * 0.62;
-  const y = eyeCenterY - hatHeight * 1.28;
+  const hatWidth = Math.max(110, Math.min(190, faceWidth * 0.9));
+  const hatHeight = Math.max(140, Math.min(235, faceWidth * 1.18));
+  const x = clamp((1 - head.x) * innerWidth + faceWidth * 0.12, hatWidth / 2, innerWidth - hatWidth / 2);
+  const y = clamp(head.y * innerHeight - hatHeight * 0.95, 8, innerHeight - hatHeight - 8);
 
   hat.classList.add("visible");
   hat.style.width = `${hatWidth}px`;
   hat.style.height = `${hatHeight}px`;
-  hat.style.transform = `translate(${x - hatWidth / 2}px, ${y}px) rotate(28deg)`;
+  hat.style.transform = `translate(${x - hatWidth / 2}px, ${y}px) rotate(16deg)`;
 }
 
 function isBlowing(categories, landmarks) {
@@ -164,6 +163,10 @@ function mouthWidthRatio(landmarks) {
 
 function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
 }
 
 function finish() {
