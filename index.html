@@ -9,6 +9,7 @@
   <body>
     <main class="stage" aria-live="polite">
       <video id="camera" class="camera" playsinline muted></video>
+      <canvas id="debugCanvas" class="debug-canvas" aria-hidden="true"></canvas>
       <div class="dim"></div>
       <div class="rotate-lock">หมุนเครื่องเป็นแนวตั้งก่อนเล่นนะ</div>
 
@@ -34,7 +35,9 @@
       </div>
 
       <div id="message" class="message" aria-hidden="true">Happy Birthday to You</div>
+      <pre id="debugPanel" class="debug-panel" aria-hidden="true"></pre>
       <p id="status" class="status">พร้อมเริ่ม</p>
+      <audio id="birthdaySong" preload="auto" src="delon_boomkin-happy-birthday-music-box-426283.mp3"></audio>
     </main>
 
     <script type="module" src="app.js"></script>

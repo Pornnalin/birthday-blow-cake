@@ -8,45 +8,25 @@ const video = document.querySelector("#camera");
 const startButton = document.querySelector("#startButton");
 const statusText = document.querySelector("#status");
 const hat = document.querySelector("#hat");
+const birthdaySong = document.querySelector("#birthdaySong");
+const debugCanvas = document.querySelector("#debugCanvas");
+const debugPanel = document.querySelector("#debugPanel");
+const debugContext = debugCanvas.getContext("2d");
+const params = new URLSearchParams(location.search);
+const debugMode = params.has("debug");
+
+if (debugMode) {
+  stage.classList.add("debug");
+}
 
 let landmarker;
-let audio;
 let startedAt = 0;
 let blowStartedAt = 0;
 let done = false;
 let lastVideoTime = -1;
 
-const noteMap = {
-  C4: 261.63,
-  D4: 293.66,
-  E4: 329.63,
-  F4: 349.23,
-  G4: 392,
-  A4: 440,
-  C5: 523.25,
-};
-
-const song = [
-  ["C4", 0.22],
-  ["C4", 0.22],
-  ["D4", 0.44],
-  ["C4", 0.44],
-  ["F4", 0.44],
-  ["E4", 0.72],
-  ["C4", 0.22],
-  ["C4", 0.22],
-  ["D4", 0.44],
-  ["C4", 0.44],
-  ["G4", 0.44],
-  ["F4", 0.72],
-  ["C4", 0.22],
-  ["C4", 0.22],
-  ["C5", 0.44],
-  ["A4", 0.44],
-  ["F4", 0.44],
-  ["E4", 0.44],
-  ["D4", 0.72],
-];
+const BLOW_READY_DELAY = 5200;
+const BLOW_HOLD_MS = 1500;
 
 startButton.addEventListener("click", start);
 
@@ -55,8 +35,7 @@ async function start() {
   setStatus("กำลังเปิดกล้อง...");
 
   try {
-    const AudioEngine = window.AudioContext || window.webkitAudioContext;
-    audio = new AudioEngine();
+    await unlockSong();
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "user", width: 1280, height: 720 },
       audio: false,
@@ -70,7 +49,7 @@ async function start() {
     setStatus("เค้กกำลังมา...");
     setTimeout(() => {
       setStatus("จัดปากเหมือนกำลังเป่าเทียน");
-      playSong();
+      playBirthdaySong(true);
     }, 1600);
     requestAnimationFrame(track);
   } catch (error) {
@@ -120,6 +99,7 @@ function updateFace(result, now) {
   const landmarks = result.faceLandmarks?.[0];
   if (!landmarks) {
     hat.classList.remove("visible");
+    updateDebug(null);
     setStatus("ขยับหน้าให้อยู่กลางกล้อง");
     blowStartedAt = 0;
     return;
@@ -127,11 +107,14 @@ function updateFace(result, now) {
 
   placeHat(landmarks);
 
-  if (now - startedAt < 2600) {
+  if (now - startedAt < BLOW_READY_DELAY) {
+    updateDebug(result, false);
+    setStatus("รอเค้กเข้าที่ก่อน...");
     return;
   }
 
   const blowing = isBlowing(result.faceBlendshapes?.[0]?.categories || [], landmarks);
+  updateDebug(result, blowing);
   if (!blowing) {
     blowStartedAt = 0;
     setStatus("เป่าเทียนด้วยปาก");
@@ -140,35 +123,30 @@ function updateFace(result, now) {
 
   blowStartedAt ||= now;
   setStatus("ดีมาก เป่าค้างไว้อีกนิด...");
-  if (now - blowStartedAt > 650) {
+  if (now - blowStartedAt > BLOW_HOLD_MS) {
     finish();
   }
 }
 
 function placeHat(landmarks) {
-  const brow = landmarks[10];
   const leftEye = landmarks[33];
   const rightEye = landmarks[263];
   const faceWidth = Math.abs(rightEye.x - leftEye.x) * innerWidth;
   const hatWidth = Math.max(86, Math.min(150, faceWidth * 0.72));
   const hatHeight = Math.max(100, Math.min(168, faceWidth * 0.82));
-  const x = brow.x * innerWidth;
-  const y = brow.y * innerHeight - hatHeight * 0.62;
-  const angle = Math.atan2(rightEye.y - leftEye.y, leftEye.x - rightEye.x) * (180 / Math.PI);
+  const x = (1 - (leftEye.x + rightEye.x) / 2) * innerWidth;
+  const y = ((leftEye.y + rightEye.y) / 2) * innerHeight - hatHeight * 1.2;
 
   hat.classList.add("visible");
   hat.style.width = `${hatWidth}px`;
   hat.style.height = `${hatHeight}px`;
-  hat.style.transform = `translate(${x - hatWidth / 2}px, ${y}px) rotate(${angle}deg)`;
+  hat.style.transform = `translate(${x - hatWidth / 2}px, ${y}px)`;
 }
 
 function isBlowing(categories, landmarks) {
   const blend = Object.fromEntries(categories.map((item) => [item.categoryName, item.score]));
-  const mouthOpen = (blend.jawOpen || 0) > 0.14 || mouthOpenRatio(landmarks) > 0.055;
-  const pursed =
-    (blend.mouthPucker || 0) > 0.18 ||
-    (blend.mouthFunnel || 0) > 0.18 ||
-    mouthWidthRatio(landmarks) < 0.35;
+  const mouthOpen = (blend.jawOpen || 0) > 0.32 || mouthOpenRatio(landmarks) > 0.11;
+  const pursed = (blend.mouthPucker || 0) > 0.65 || (blend.mouthFunnel || 0) > 0.65;
 
   return mouthOpen && pursed;
 }
@@ -189,34 +167,96 @@ function finish() {
   done = true;
   stage.classList.add("done");
   setStatus("สุขสันต์วันเกิด!");
-  playSong(0.5);
+  playBirthdaySong(false);
 }
 
-function playSong(delay = 0) {
-  if (!audio) return;
-
-  let time = audio.currentTime + delay;
-  for (const [note, length] of song) {
-    playNote(noteMap[note], time, length);
-    time += length;
+async function unlockSong() {
+  birthdaySong.volume = 0.8;
+  birthdaySong.muted = true;
+  try {
+    await birthdaySong.play();
+    birthdaySong.pause();
+    birthdaySong.currentTime = 0;
+  } catch {
+    // ponytail: Safari may still block; the later play() is the real attempt.
   }
+  birthdaySong.muted = false;
 }
 
-function playNote(frequency, time, length) {
-  const oscillator = audio.createOscillator();
-  const gain = audio.createGain();
-  oscillator.type = "triangle";
-  oscillator.frequency.value = frequency;
-  gain.gain.setValueAtTime(0.0001, time);
-  gain.gain.exponentialRampToValueAtTime(0.16, time + 0.02);
-  gain.gain.exponentialRampToValueAtTime(0.0001, time + length);
-  oscillator.connect(gain).connect(audio.destination);
-  oscillator.start(time);
-  oscillator.stop(time + length + 0.04);
+function playBirthdaySong(restart) {
+  if (restart) {
+    birthdaySong.currentTime = 0;
+  }
+  birthdaySong.play().catch(() => setStatus("แตะหน้าจออีกครั้งเพื่อเปิดเสียง"));
 }
 
 function setStatus(message) {
   statusText.textContent = message;
+}
+
+function updateDebug(result, blowing = false) {
+  if (!debugMode) return;
+
+  debugCanvas.width = innerWidth * devicePixelRatio;
+  debugCanvas.height = innerHeight * devicePixelRatio;
+  debugContext.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  debugContext.clearRect(0, 0, innerWidth, innerHeight);
+
+  const landmarks = result?.faceLandmarks?.[0];
+  if (!landmarks) {
+    debugPanel.textContent = "face: none";
+    return;
+  }
+
+  const blend = Object.fromEntries((result.faceBlendshapes?.[0]?.categories || []).map((item) => [item.categoryName, item.score]));
+  const points = [
+    ["head", 10, "#facc15"],
+    ["leftEye", 33, "#38bdf8"],
+    ["rightEye", 263, "#38bdf8"],
+    ["mouthTop", 13, "#fb7185"],
+    ["mouthBottom", 14, "#fb7185"],
+    ["mouthLeft", 61, "#a78bfa"],
+    ["mouthRight", 291, "#a78bfa"],
+  ];
+
+  for (const [label, index, color] of points) {
+    drawPoint(label, landmarks[index], color);
+  }
+
+  drawBox(hat.getBoundingClientRect(), "#22c55e", "hat");
+  drawBox(document.querySelector("#cake").getBoundingClientRect(), "#f97316", "cake");
+
+  debugPanel.textContent = [
+    `blowing: ${blowing}`,
+    `jawOpen: ${round(blend.jawOpen)}`,
+    `pucker: ${round(blend.mouthPucker)}`,
+    `funnel: ${round(blend.mouthFunnel)}`,
+    `openRatio: ${round(mouthOpenRatio(landmarks))}`,
+    `widthRatio: ${round(mouthWidthRatio(landmarks))}`,
+    `hat: ${Math.round(hat.getBoundingClientRect().left)},${Math.round(hat.getBoundingClientRect().top)}`,
+  ].join("\n");
+}
+
+function drawPoint(label, point, color) {
+  const x = (1 - point.x) * innerWidth;
+  const y = point.y * innerHeight;
+  debugContext.fillStyle = color;
+  debugContext.beginPath();
+  debugContext.arc(x, y, 7, 0, Math.PI * 2);
+  debugContext.fill();
+  debugContext.fillText(label, x + 8, y - 8);
+}
+
+function drawBox(rect, color, label) {
+  debugContext.strokeStyle = color;
+  debugContext.lineWidth = 3;
+  debugContext.strokeRect(rect.left, rect.top, rect.width, rect.height);
+  debugContext.fillStyle = color;
+  debugContext.fillText(label, rect.left + 6, rect.top + 16);
+}
+
+function round(value = 0) {
+  return value.toFixed(3);
 }
 
 function runSelfCheck() {
@@ -224,15 +264,15 @@ function runSelfCheck() {
   points[33] = { x: 0.2, y: 0.4 };
   points[263] = { x: 0.8, y: 0.4 };
   points[13] = { x: 0.5, y: 0.55 };
-  points[14] = { x: 0.5, y: 0.6 };
+  points[14] = { x: 0.5, y: 0.63 };
   points[61] = { x: 0.41, y: 0.58 };
   points[291] = { x: 0.59, y: 0.58 };
 
-  console.assert(isBlowing([{ categoryName: "mouthPucker", score: 0.25 }], points), "detects a blow face");
+  console.assert(isBlowing([{ categoryName: "mouthPucker", score: 0.8 }], points), "detects a blow face");
   points[291] = { x: 0.72, y: 0.58 };
   console.assert(!isBlowing([], points), "ignores a normal open mouth");
 }
 
-if (new URLSearchParams(location.search).has("selfcheck")) {
+if (params.has("selfcheck")) {
   runSelfCheck();
 }
