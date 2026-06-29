@@ -15,7 +15,7 @@ const debugCanvas = document.querySelector("#debugCanvas");
 const debugPanel = document.querySelector("#debugPanel");
 const debugContext = debugCanvas.getContext("2d");
 const params = new URLSearchParams(location.search);
-const debugMode = !params.has("nodebug");
+const debugMode = params.has("debug");
 const tuningMode = params.has("tune");
 
 if (debugMode) {
@@ -162,17 +162,18 @@ function updateCakeChase(landmarks, now) {
   }
 
   if (cakeState === "right" && (nearCake || reachingRightCake)) {
-    setCakeState("escape");
-    setStatus("เค้กหนีขึ้นไปแล้ว...");
+    setCakeState("left2");
+    setStatus("เค้กหนีกลับซ้าย!");
     return;
   }
 
-  if (cakeState === "escape" && now - cakeStateAt > 650) {
-    setCakeState("below");
+  if (cakeState === "left2" && (nearCake || reachingLeftCake)) {
+    setCakeState("top");
+    setStatus("เค้กหนีขึ้นบนแล้ว...");
     return;
   }
 
-  if (cakeState === "below" && now - cakeStateAt > 80) {
+  if (cakeState === "top" && now - cakeStateAt > 750) {
     setCakeState("final");
     setStatus("ตอนนี้เป่าเทียนได้แล้ว");
   }

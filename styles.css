@@ -228,16 +228,16 @@ button:disabled {
   transform: translate(-50%, -50%) rotate(8deg) scale(0.98);
 }
 
-.cake[data-state="escape"] {
-  --cake-x: 78vw;
-  --cake-y: -20vh;
-  transform: translate(-50%, -50%) rotate(-12deg) scale(0.9);
+.cake[data-state="left2"] {
+  --cake-x: 24vw;
+  --cake-y: 84vh;
+  transform: translate(-50%, -50%) rotate(-8deg) scale(0.98);
 }
 
-.cake[data-state="below"] {
+.cake[data-state="top"] {
   --cake-x: 50vw;
-  --cake-y: 118vh;
-  transition-duration: 0ms;
+  --cake-y: -20vh;
+  transform: translate(-50%, -50%) rotate(-12deg) scale(0.9);
 }
 
 .cake[data-state="final"] {
