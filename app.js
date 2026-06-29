@@ -150,10 +150,10 @@ function placeHat(landmarks) {
 
 function isBlowing(categories, landmarks) {
   const blend = Object.fromEntries(categories.map((item) => [item.categoryName, item.score]));
-  const mouthOpen = (blend.jawOpen || 0) > 0.45 && mouthOpenRatio(landmarks) > 0.13;
-  const pursed = (blend.mouthPucker || 0) > 0.8 || (blend.mouthFunnel || 0) > 0.8;
+  const pursed = (blend.mouthPucker || 0) > 0.55 || (blend.mouthFunnel || 0) > 0.55;
+  const lipsNarrow = mouthWidthRatio(landmarks) < 0.42;
 
-  return mouthOpen && pursed;
+  return pursed && lipsNarrow;
 }
 
 function mouthOpenRatio(landmarks) {
