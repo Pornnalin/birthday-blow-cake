@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Birthday Blow</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="stage" aria-live="polite">
+      <video id="camera" class="camera" playsinline muted></video>
+      <div class="dim"></div>
+
+      <section id="intro" class="intro">
+        <h1>Birthday Blow</h1>
+        <p>เปิดกล้อง วางหน้าไว้กลางจอ แล้วเป่าเทียนด้วยปาก</p>
+        <button id="startButton" type="button">เริ่มเป่าเทียน</button>
+      </section>
+
+      <div id="hat" class="hat" aria-hidden="true">
+        <div class="hat-cone"></div>
+        <div class="hat-pom"></div>
+        <div class="hat-band"></div>
+      </div>
+
+      <div id="cake" class="cake" aria-hidden="true">
+        <div class="flame"></div>
+        <div class="candle"></div>
+        <div class="frosting"></div>
+        <div class="cake-top"></div>
+        <div class="cake-base"></div>
+        <div class="plate"></div>
+      </div>
+
+      <div id="message" class="message" aria-hidden="true">Happy Birthday to You</div>
+      <p id="status" class="status">พร้อมเริ่ม</p>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
