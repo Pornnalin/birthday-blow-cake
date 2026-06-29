@@ -90,32 +90,31 @@ async function createLandmarker() {
 }
 
 function track(now) {
-  if (done) return;
-
   if (video.currentTime !== lastVideoTime) {
     lastVideoTime = video.currentTime;
     const result = landmarker.detectForVideo(video, now);
     updateFace(result, now);
   }
 
-  if (!done) {
-    requestAnimationFrame(track);
-  }
+  requestAnimationFrame(track);
 }
 
 function updateFace(result, now) {
-  if (done) return;
-
   const landmarks = result.faceLandmarks?.[0];
   if (!landmarks) {
     hat.classList.remove("visible");
     updateDebug(null);
-    setStatus("ขยับหน้าให้อยู่กลางกล้อง");
+    if (!done) setStatus("ขยับหน้าให้อยู่กลางกล้อง");
     blowStartedAt = 0;
     return;
   }
 
   placeHat(landmarks);
+
+  if (done) {
+    updateDebug(result, false);
+    return;
+  }
 
   if (now - startedAt < BLOW_READY_DELAY) {
     updateDebug(result, false);
@@ -142,11 +141,14 @@ function placeHat(landmarks) {
   const head = landmarks[10];
   const leftEye = landmarks[33];
   const rightEye = landmarks[263];
-  const faceWidth = Math.abs(rightEye.x - leftEye.x) * innerWidth;
+  const headPoint = toScreenPoint(head);
+  const leftEyePoint = toScreenPoint(leftEye);
+  const rightEyePoint = toScreenPoint(rightEye);
+  const faceWidth = Math.abs(rightEyePoint.x - leftEyePoint.x);
   const hatWidth = Math.max(110, Math.min(190, faceWidth * 0.9));
   const hatHeight = Math.max(140, Math.min(235, faceWidth * 1.18));
-  const x = clamp((1 - head.x) * innerWidth, hatWidth / 2, innerWidth - hatWidth / 2);
-  const y = clamp(head.y * innerHeight + 16, hatHeight, innerHeight - 8);
+  const x = clamp(headPoint.x, hatWidth / 2, innerWidth - hatWidth / 2);
+  const y = clamp(headPoint.y + 16, hatHeight, innerHeight - 8);
 
   hat.classList.add("visible");
   hat.style.width = `${hatWidth}px`;
@@ -178,6 +180,21 @@ function distance(a, b) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
+}
+
+function toScreenPoint(point) {
+  const videoWidth = video.videoWidth || innerWidth;
+  const videoHeight = video.videoHeight || innerHeight;
+  const scale = Math.max(innerWidth / videoWidth, innerHeight / videoHeight);
+  const drawnWidth = videoWidth * scale;
+  const drawnHeight = videoHeight * scale;
+  const offsetX = (innerWidth - drawnWidth) / 2;
+  const offsetY = (innerHeight - drawnHeight) / 2;
+
+  return {
+    x: offsetX + (1 - point.x) * drawnWidth,
+    y: offsetY + point.y * drawnHeight,
+  };
 }
 
 function finish() {
@@ -262,6 +279,7 @@ function updateDebug(result, blowing = false) {
     drawPoint(label, landmarks[index], color);
   }
 
+  const headPoint = toScreenPoint(landmarks[10]);
   drawBox(hat.getBoundingClientRect(), "#22c55e", "hat");
   drawBox(document.querySelector("#cake").getBoundingClientRect(), "#f97316", "cake");
 
@@ -275,14 +293,13 @@ function updateDebug(result, blowing = false) {
     `funnel: ${round(blend.mouthFunnel)}`,
     `openRatio: ${round(mouthOpenRatio(landmarks))}`,
     `widthRatio: ${round(mouthWidthRatio(landmarks))}`,
-    `head: ${Math.round((1 - landmarks[10].x) * innerWidth)},${Math.round(landmarks[10].y * innerHeight)}`,
+    `head: ${Math.round(headPoint.x)},${Math.round(headPoint.y)}`,
     `hat: ${Math.round(hat.getBoundingClientRect().left)},${Math.round(hat.getBoundingClientRect().top)}`,
   ].join("\n");
 }
 
 function drawPoint(label, point, color) {
-  const x = (1 - point.x) * innerWidth;
-  const y = point.y * innerHeight;
+  const { x, y } = toScreenPoint(point);
   debugContext.fillStyle = color;
   debugContext.beginPath();
   debugContext.arc(x, y, 7, 0, Math.PI * 2);
@@ -314,6 +331,8 @@ function runSelfCheck() {
   console.assert(isBlowing([{ categoryName: "jawOpen", score: 0.6 }, { categoryName: "mouthPucker", score: 0.9 }], points), "detects a blow face");
   points[291] = { x: 0.72, y: 0.58 };
   console.assert(!isBlowing([], points), "ignores a normal open mouth");
+  const mapped = toScreenPoint({ x: 0.5, y: 0.5 });
+  console.assert(Number.isFinite(mapped.x) && Number.isFinite(mapped.y), "maps landmarks to screen");
 }
 
 if (params.has("selfcheck")) {
