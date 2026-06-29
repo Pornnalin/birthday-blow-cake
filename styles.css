@@ -201,7 +201,7 @@ button:disabled {
 }
 
 .cake {
-  --cake-x: 24vw;
+  --cake-x: -24vw;
   --cake-y: 84vh;
   position: absolute;
   z-index: 4;
@@ -215,6 +215,11 @@ button:disabled {
     left 780ms cubic-bezier(0.16, 1, 0.3, 1),
     top 780ms cubic-bezier(0.16, 1, 0.3, 1),
     transform 780ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cake[data-state="left"] {
+  --cake-x: 24vw;
+  --cake-y: 84vh;
 }
 
 .cake[data-state="right"] {
@@ -437,8 +442,12 @@ button:disabled {
   }
 
   .cake {
-    --cake-x: 24vw;
+    --cake-x: -34vw;
     --cake-y: 84vh;
+  }
+
+  .cake[data-state="left"] {
+    --cake-x: 24vw;
   }
 
   .hat {
