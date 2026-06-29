@@ -341,7 +341,9 @@ button:disabled {
 
 .message {
   position: absolute;
-  z-index: 8;
+  z-index: 12;
+  top: max(1rem, env(safe-area-inset-top));
+  left: 50%;
   width: min(92vw, 980px);
   color: #fff7ed;
   font-size: clamp(3.1rem, 13vw, 8.8rem);
@@ -350,7 +352,7 @@ button:disabled {
   text-align: center;
   text-shadow: 0 10px 0 #db2777, 0 24px 52px rgb(0 0 0 / 0.48);
   opacity: 0;
-  transform: translateY(36px) scale(0.82);
+  transform: translate(-50%, 36px) scale(0.82);
   pointer-events: none;
 }
 
@@ -401,17 +403,17 @@ button:disabled {
 @keyframes popMessage {
   0% {
     opacity: 0;
-    transform: translateY(36px) scale(0.82);
+    transform: translate(-50%, 36px) scale(0.82);
   }
 
   70% {
     opacity: 1;
-    transform: translateY(-8px) scale(1.04);
+    transform: translate(-50%, -8px) scale(1.04);
   }
 
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, 0) scale(1);
   }
 }
 

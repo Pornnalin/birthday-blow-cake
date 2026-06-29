@@ -90,6 +90,8 @@ async function createLandmarker() {
 }
 
 function track(now) {
+  if (done) return;
+
   if (video.currentTime !== lastVideoTime) {
     lastVideoTime = video.currentTime;
     const result = landmarker.detectForVideo(video, now);
@@ -102,6 +104,8 @@ function track(now) {
 }
 
 function updateFace(result, now) {
+  if (done) return;
+
   const landmarks = result.faceLandmarks?.[0];
   if (!landmarks) {
     hat.classList.remove("visible");
