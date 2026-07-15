@@ -30,7 +30,7 @@ let cakeState = "left";
 let cakeStateAt = 0;
 let cakeReady = false;
 
-const BLOW_HOLD_MS = 2500;
+const BLOW_HOLD_MS = 1200;
 const CAKE_ARM_MS = 1200;
 const MOUTH_TOP = 0;
 const MOUTH_BOTTOM = 17;
