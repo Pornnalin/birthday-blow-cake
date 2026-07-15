@@ -196,7 +196,7 @@ button:disabled {
   white-space: pre-wrap;
 }
 
-.debug .debug-panel {
+.debug.started .debug-panel {
   display: block;
 }
 
